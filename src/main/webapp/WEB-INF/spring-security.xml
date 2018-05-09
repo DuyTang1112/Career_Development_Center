@@ -1,0 +1,41 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+   <http auto-config="true" use-expressions="true">
+        <intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')" />
+        <intercept-url pattern="/student/**" access="hasAnyRole('ROLE_STUDENT','ROLE_ADMIN')" />
+        <intercept-url pattern="/makePost" access="isAuthenticated()" />
+        <intercept-url pattern="/chat" access="isAuthenticated()" />
+        <intercept-url pattern="/recruit/search" access="hasAnyRole('ROLE_OFFICER','ROLE_ADMIN')" />
+         
+        <access-denied-handler error-page="/auth/403"/>
+        <form-login
+            login-page="/auth/login"
+            default-target-url="/"
+            authentication-failure-url="/auth/login?error"
+            username-parameter="username"
+            password-parameter="password" />
+        <logout
+            logout-success-url="/auth/login?logout" />
+    </http>
+
+    <authentication-manager>
+        <authentication-provider>
+            <jdbc-user-service data-source-ref="dataSource" 
+              authorities-by-username-query="SELECT username, rolename 
+              FROM Users INNER JOIN Login 
+              ON Users.userid=Login.userid 
+              INNER JOIN Roles
+              ON Users.roleid=Roles.roleid
+              WHERE username = ?"
+              users-by-username-query="SELECT username, password, approved 
+              FROM Users INNER JOIN Login ON USERS.userid=Login.userid 
+              WHERE username = ?" />
+        </authentication-provider>
+    </authentication-manager>
+
+</beans:beans>
